@@ -192,6 +192,9 @@ def _convert_field(
     if field.title is not pydantic_core.PydanticUndefined and field.title is not None:
         drf_field_kwargs["label"] = field.title
 
+    if inspect.isclass(field.annotation) and issubclass(field.annotation, str):
+        drf_field_kwargs["allow_blank"] = True
+
     # Process constraints
     for item in field.metadata:
         if isinstance(item, pydantic.StringConstraints):
