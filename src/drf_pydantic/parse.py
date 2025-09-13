@@ -103,7 +103,7 @@ def create_serializer_from_model(
         fields: Dict[str, serializers.Field] = {}
         for field_name, field in pydantic_model.model_fields.items():
             try:
-                fields[field_name] = _convert_field(field, drf_config=drf_config)
+                fields[field_name] = _convert_field(field, drf_config=drf_config, field_name=field_name)
             except FieldConversionError as error:
                 errors[field_name] = str(error)
         if len(errors) > 0:
@@ -142,6 +142,7 @@ def create_serializer_from_model(
 def _convert_field(
     field: pydantic.fields.FieldInfo,
     drf_config: DrfConfigDict,
+    field_name: str,
 ) -> serializers.Field:
     """
     Convert pydantic field to DRF serializer Field.
@@ -287,6 +288,9 @@ def _convert_field(
                 drf_field_kwargs["max_value"] = decimal.Decimal(item.lt)  # type: ignore
             except (TypeError, decimal.InvalidOperation):
                 pass
+
+    if field_name == "password":
+        drf_field_kwargs["style"] = {'input_type': 'password'}
 
     return _convert_type(
         field.annotation,
